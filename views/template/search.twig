@@ -1,0 +1,107 @@
+{# empty Twig template #}
+{%extends "/layout/base.twig"%}
+{% block title %}
+	<title>Semio labs || Cherchez votre article par tag </title>
+{% endblock %}
+{%block css%}
+{{parent()}}
+
+{%endblock%}
+{%block content%}
+     <div id="wrap" class="wrap">
+	 {% if articles is not empty %}
+
+        <div id="categoryTags">
+			<ul>
+				{% for tag in tags %}
+					<li>
+						<a rel="tag" title="{{ tag.tags }}" href="#">{{ tag.tags }}</a>
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+         <div class="content">
+             {% for article in articles %}
+            <div class="article">
+                <div class="article-content">
+                    <div class="title">
+                        <span class="icon-article"><img src="/semiolabs/web/images/{{ article.Type.Libelle }}.png" alt="type" title="type" /> </span>
+                        <input type="hidden" id="tags" value="{{ searched }}" />
+                        <h2><a href="/semiolabs/web/article/{{ article.id }}">{{ article.titre|e }} </a></h2>
+                    </div>
+                   <div class="info-date">     
+                    <div class="separator-small"></div>
+                    <h4> {{ article.date|date("d F Y", "Europe/Paris")}}</h4>
+                   </div>
+                     <div class="article-body">
+					   {% if article.Type.Libelle == 'Lien' %}
+							<a href="{{ article.lien }}" alt="{{ article.titre|e }}" class="lien" >{{ article.lien }}</a>
+					   {% endif %}
+					   <p class="contenu_p">
+                       {{ article.texte| raw }}
+					   </p>
+					   <div class="media">
+					   {% if article.Type.Libelle == 'Photo' %}
+							<img src="{{ article.media }}" alt="{{ article.titre|e }}" title ="{{ article.titre|e }}"/>
+					   {% elseif article.Type.Libelle == 'Video' %}
+							<iframe src="http://www.youtube.com/embed/{{ article.media }}"	width="512" height="310"></iframe>
+					   {% endif %}
+					   </div>
+                   </div>
+                </div>
+				<div class="clear"></div>
+                <div class="separator-long"></div>
+            </div>
+            {% else %}
+				<div class="alert alert-block alert-error">
+					<h4>R&eacute;sultat recherche ||</h4>
+					Aucune article trouv&eacute;
+				</div>
+			{% endfor %}
+          </div>
+          <div id="loadmoreajaxloader" >
+			<div class="message"><img src="/semiolabs/web/images/loader.gif" alt="loader" /><span> Chargement d'articles plus anciens </span></div>
+		  </div>
+	{% else %}
+		<div class="alert alert-block alert-error">
+					<h4>R&eacute;sultat recherche ||</h4>
+					Aucune article trouv&eacute;
+		</div>
+	{%endif%}
+     </div>
+{% endblock %}
+{% block footer_js %}
+{{parent()}}
+ <script>
+        var nb=3;
+	var tag = $('#tags').val();
+    $(window).scroll(function()
+    {
+        
+        if($(window).scrollTop() == $(document).height() - $(window).height())
+        {   
+		   $('div#loadmoreajaxloader').show();
+
+            $.ajax({
+            url: "/semiolabs/web/ajax",
+            type:'POST',
+            data: { nmb: nb, tags: tag},
+            success: function(html)
+            {
+                if(html)
+                {
+                    $(".content").append(html);
+                    $('div#loadmoreajaxloader').hide();
+                }else
+                {
+                    $('div#loadmoreajaxloader').html('<center>No more posts to show.</center>');
+                }
+            }
+            });
+          nb+=3;
+        }
+    });
+</script>
+
+{% endblock %}
+
